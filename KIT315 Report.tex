@@ -47,7 +47,7 @@ What's more, since the purpose of the application is to detect and then identify
 If the image resolution (size) is low, the image will be even more blurry after resizing before/during the training process, so that the model could not extract the key features of the image and the performance will be impacted. Also, if the image is too narrow (strange image ratio), then the object will be squeezed/stretched too much after resizing, causing difficulties for model to recognized these objects. Besides, painting images should not be collected because they have many difference with real penguin images. All this aspects will be discussed and analysed again in the model selection part.
 
 Another step in data collecting process is the data augmentation. Augmentation performs transforms on the existing images to create new variations and increase the number of images in the data set. This ultimately makes models more accurate across a broader range of use cases. 
-In the real scenario, the environment we monitor may contain some noise and the exposure of the photo/video of the observed environment will be different, which would affect the average precision of the model. To help the model be more resilient to camera artifacts, lighting and camera setting changes, I choose to generate more pictures with different \textbf{noise} (Up to 3\% of pixels) and \textbf{exposure} (Between -15\% and +15\%) by using Roboflow tool~\cite{ref_roboflow}
+In the real scenario, the environment we monitor may contain some noise and the exposure of the image/video of the observed environment will be different, which would affect the average performance of the model. To help the model be more resilient to camera artifacts, lighting and camera setting changes, I choose to generate more pictures with different \textbf{noise} (Up to 3\% of pixels) and \textbf{exposure} (Between -15\% and +15\%) by using Roboflow tool~\cite{ref_roboflow}
 
 
 % Section 3: Data annotating
@@ -65,15 +65,15 @@ To annotate the data that I've collected, I also used Roboflow~\cite{ref_roboflo
 
 % Section 4: Data processing
 \section{Data processing}
-Data processing is a crucial phase in the machine learning process since the quality of the data and the information that can be extracted from it directly influence how well the model can learn. For this reason, it is crucial that we pre-process the data before introducing it to the model.
+Data processing is a crucial phase in the machine learning process since the quality of the data and the information that can be extracted from it directly influence how well the model can learn. 
 
-A crucial step in computer vision's pre-processing is image resizing. Since the images I collected don't have the same size, although in some models like YOLOv5, the image resizing is done automatically. However, other models like R-CNN will not. Principally, deep learning models train faster on small images. A larger input image requires the neural network to learn from four times as many pixels, which increases the architecture's training time~\cite{resize}. Thus, I choose the resize option in Roboflow~\cite{ref_roboflow}.
+A crucial step in computer vision's pre-processing is image resizing. The images I collected don't have the same size, although in some models like YOLOv5, the image resizing is done automatically before training, however, other models like R-CNN will not. Principally, deep learning models train faster on small images. A larger input image requires the neural network to learn from four times as many pixels, which increases the architecture's training time~\cite{resize}. Thus, I choose the resize option in Roboflow~\cite{ref_roboflow} to make sure all the image has the size 640*640.
 
-Usually, an image is captured with metadata that specifies how it should be displayed in relation to how the pixels are arranged on disc. This directive, which is stored in the EXIF orientation field, expedites the image encoding process at the time of capture, allowing cameras to efficiently sample data from their sensors without unwelcome artefacts. This means that most cameras store images' pixels exactly the same whether the camera is oriented in landscape or portrait mode. They just flip a bit to signal to the viewer whether to display the pixels as-is or to rotate them by 90 or 180 degrees when displaying the image. Unfortunately, this can cause issues if the application displaying the images is unaware of the metadata and naively displays the image without respecting its EXIF orientation. Thus, to help the model learn better, I choose the auto-Orient option in Roboflow~\cite{ref_roboflow}.
+Usually, an image is captured with metadata that specifies how it should be displayed in relation to how the pixels are arranged on disc. This directive, which is stored in the EXIF orientation field, expedites the image encoding process at the time of capture, allowing cameras to efficiently sample data from their sensors without unwelcome artefacts. This means that most cameras store images' pixels exactly the same whether the camera is oriented in landscape or portrait mode. They just flip a bit to signal to the viewer whether to display the pixels as-is or to rotate them by 90 or 180 degrees when displaying the image. Unfortunately, this can cause issues if the application displaying the images is unaware of the metadata and naively displays the image without respecting its EXIF orientation. Thus, to help the model learn better, I choose the Auto-Orient option in Roboflow~\cite{ref_roboflow}.
 
 During the data annotating, I used the scientific name for each type of penguin which is hard for general user to understand. Thus, to help user know what the species are when the model detecting objects, I choose to modify the class name (for example, King Penguin replaces Aptenodytes Patagonicus).
 
-Since the data set does not contain missing values/annotations, I needn't perform any operations about it, and I didn't need to normalize the data as well (keep the original color as it is). 
+Since the data set does not contain missing values/annotations, I needn't perform any operations about it, and I didn't need to normalize the data as well (means I keep the original color as it is). 
 
 After the data collecting and the data processing, there have 1188 images in the data set, and the train/validation/test split I use is 84\%/9\%/7\%. 
 
@@ -82,38 +82,79 @@ After the data collecting and the data processing, there have 1188 images in the
 \section{Model selection/design}
 After processing the data, I need to select and design appropriate approaches (three in total) for this project. 
 
-Among different approaches for object detection tasks, the Region-based Convolutional Neural Network (R-CNN), as a famous two-step object, is suitable for this project. It separates the object detection and recognition into two phase, and can apply high-capacity convolutional neural networks (CNNs) to bottom-up region proposals in order to localize and segment object. When there is a lack of labelled training data, supervised pre-training for a secondary task followed by domain-specific fine-tuning results in a noticeable performance improvement~\cite{R-CNN}. Although R-CNN is slower than the one-step object detection models, it can achieve better average precision potentially. Faster R-CNN, as it's name, is the fastest R-CNN. The `region proposal network' (RPN), a component that uses the feature maps generated by a convolutional neural network to suggest a set of bounding boxes where objects may be located, is the main innovation in this system. By incorporating region detection into the primary neural network architecture,Faster R-CNN is able to detect objects quickly and nearly in real time~\cite{Faster R-CNN}.
+Among different approaches for object detection tasks, the Region-based Convolutional Neural Network (R-CNN), as a two-step object detection method, is suitable for this project. It separates the object detection and recognition into two phase, and can apply high-capacity convolutional neural networks (CNNs) to bottom-up region proposals in order to localize and segment object. When there is a lack of labelled training data, supervised pre-training for a secondary task followed by domain-specific fine-tuning results in a noticeable performance improvement~\cite{R-CNN}. Although R-CNN is slower than the one-step object detection models, it can achieve better average precision potentially. Faster R-CNN, as it's name, is the fastest R-CNN. The `region proposal network' (RPN), a component that uses the feature maps generated by a convolutional neural network to suggest a set of bounding boxes where objects may be located, is the main innovation in this system. By incorporating region detection into the primary neural network architecture,Faster R-CNN is able to detect objects quickly and nearly in real time~\cite{Faster R-CNN}.
 
 YOLO, as a one-step object detection model, is the integration of the entire object detection and classification process~\cite{YOLO}. Instead of extracting features and regions separately, YOLO performs everything in a single pass through a single network. In addition, YOLO can perform object detection at video streaming framerates and is suitable applications that require real-time inference like this project. YOLO has published 7 different versions by this year, and the most two popular versions are the YOLOv5 and the latest version YOLOv7. The reason why I don't use YOLOv6 is it defines the model parameters directly in Python instead of YAML file, which means it has less customizability than YOLOv5. YOLOv7, on the other hand, is published in August and is 120\% faster than the other versions. In order to compare the difference, I will choose both versions of YOLO. 
 
-Hence, the final three models I choose for this project are YOLOv5, YOLOv7, and Faster R-CNN.
+There also have several other approaches such as SSD, though it is faster than R-CNN, the performance of it is not as good as R-CNN in some scenarios, and I'm not very familiar with this method, so I didn't choose this as one of my three approaches. Hence, the final three models I choose for this project are YOLOv5, YOLOv7, and Faster R-CNN.
 
 % Section 6: Model selection
 \section{Model selection}
+% Section 6.1: Metrics and strategy
 \subsection{Selection strategy and metrics used}
+class balance, number of samples, model type, img size, 
+In this project, I have chosen the following popular metrics to evaluate the models:
+\begin{itemize}
+  \item IOU (Intersection Over Union):a statistic that determines the distinction (ratio) between anticipated bounding boxes and ground truth annotations. This is the threshold value for the AP and mAP.
+  \item AP (Average Precision) and mAP (Mean Average Precision): To evaluate the detection commonly we calculate the area under precision-recall curve, which gives a numerical value that is easy to compare the performance with other models. Based on the precision-recall curve AP it summarises the weighted mean of precision for each threshold with the increase in recall. Average precision is calculated for each object. However, in AP, we only calculate individual objects but in mAP (the average AP for each class), it gives the precision for the entire model. In this project, I will use mAP@.5 (mAP with IOU=0.5, to remove unnecessary bounding boxes, it is the standard threshold value for most of the models), AP@[.5:.95] (AP) and mAP@[.5:.95] (mmAP) which are the average of AP and mAP with IOU from 0.5 to 0.95, with the step of 0.05 especially.
+  \item FPS (Frames Per Second): I will use FPS to calculate the images/frames the model can detect for each second.
+\end{itemize}
 
+
+% Section 6.2: Results analysis
 \subsection{Results analysis}
+% result table
+\begin{table}
+\caption{Results of different models}\label{tab1}
+\begin{tabular}{|l|l|l|l|l|l|l|}
+\hline
+Model &  mAP@.5 & mmAP & FPS\\
+\hline
+YOLOv5 & & & \\
+YOLOv7 & & & \\
+Faster R-CNN & & & \\
+\hline
+\end{tabular}
+\end{table}
 
+% Section 6.3: Select the best model
 \subsection{Select the best model}
-
+Select the best model
 
 % Section 7: Apply model
 \section{Apply the model}
-
+Apply the model
 
 % Section 8: Post-analysis
 \section{Post-analysis}
+% Section 8.1: Pros/cons
 \subsection{Advantages/disadvantages of the approaches}
-Some TODO
+In this project, there have many pros and cons of the approaches.
 
-Advantages:
+Advantages: The pre-chosen models (YOLO, R-CNN) are very suitable for this task; The images are collected from different resources, and data augmentation is performed appropriately, allowing the model learn more information in various context; Some sub-models like YOLOv5m, YOLOv7X, R101-FPN, are tested and compared together during the model selection process; The images are pre-processed appropriately by resizing and orienting them; The final model I selected, which is YOLOv7 model, are the most efficient object detection model; The tensorboard are used for viewing the training process and results within this project, which helps me compare and select models efficiently; The Roboflow tool is used for all the steps before training, save a large amount of time and helps the model obtain excellent performance potentially. 
 
-Disadvantages:
+Disadvantages: I don't have enough time to train other sub-models of YOLO and Faster R-CNN such as YOLOv5x, YOLOv7-e6e, X101-FPN etc.; The data is annotated manually in a limited period, which may not be accurate enough; The class instances are not balance in my dataset, with only 360 chinstrap penguins but 750+ emperor and king penguins; I didn't customize many of the hyperparameters of models, which can impact the performance of the results potentially; The number of samples are still not enough for the model to learn, the generalizability of the model can be increased in the future; The settings of Faster R-CNN may contain errors, causing lower average precision.
+
+% Section 8.2: Improvement 
 \subsection{Potential improvement}
-To make the application into commercial product, 
+To improve the model and make the application into commercial product, there have several things need to be done. 
+\begin{itemize}
+    \item More image data including various context need to be collected, and both image level and bounding box level of data augmentation techniques (different Hue, Saturation, Cutout, Mosaic) can be applied to help the model learn more information.
+    \item More chinstrap penguin images should be collected to make class instances more balance.
+    \item More accurate data annotation should be performed, and the annotation should be checked by different developer.
+    \item The model should train for more epochs to obtain even better performance.
+    \item We can customize the hyperparameters or try different sub-versions of YOLOv7 model (YOLOv7-e6e, YOLOv7-D6 etc.)
+    \item The model should be embedded into appropriate mobile application that can generate/display human-readable statistics and make notifications
+\end{itemize}
 
+
+% Section 8.3: Other approaches
 \subsection{Other models/approaches}
-In this project, 
+In this project, there have some other potential models/approaches that can be used later. For example, the Single Shot MultiBox Detector (SSD) that can achieve 72.1\% mAP and 58 FPS~\cite{ssd}, the RetinaNet, the EfficientNet, the MobileNet, the YOLOR etc. Besides, if we can annotate the mask for each penguins, Mask R-CNN is also a good approach for object detection. Fortunately, the final model I used (YOLOv7) is the fastest and one of the most accurate model in the world now, which means all these potential models may not achieve better performance, but still worth trying. 
+
+What's more, better model selection method such as grid search or random search should be used for obtaining best hyperparameters combination. Also, we should try to train the same model multiple times and average its results when evaluating the model if is possible. 
+
+
 
 % Reference
 \begin{thebibliography}{8}
@@ -138,7 +179,8 @@ Ren, S, He, K, Girshick, R \& Sun, J 2015, Faster R-CNN: Towards Real-Time Objec
 \bibitem{YOLO}
 Redmon, J, Divvala, S, Girshick, R \& Farhadi, A 2015, You Only Look Once: Unified, Real-Time Object Detection, arXiv.org.
 
-
+\bibitem{ssd}
+Liu, W, Anguelov, D, Erhan, D, Szegedy, C, Reed, S, Fu, C-Y \& Berg, AC 2016, `SSD: Single Shot MultiBox Detector', Computer Vision – ECCV 2016, pp. 21–37.
 
 \end{thebibliography}
 \end{document}
