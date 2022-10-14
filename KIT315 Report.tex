@@ -61,7 +61,7 @@ To annotate the data that I've collected, I also used Roboflow~\cite{ref_roboflo
   \item Annotate the penguin chick as well.
 \end{itemize}
 
-* The reason why I ignored some penguins that are too small/blurry/not distinctly visible is that, although as humans, we can know that these "objects" are penguins, if the model learns too much of this `information', it would have some problems such as over-fitting or can not detect the penguins correctly, it will treat any similar blurry things as penguin which is not good for the general case. If the application is used for counting the number of penguins in the image, then I should label all the penguins that I can see. But the main purpose is to detect and classify, thus, to balance this situation and ensure the model has high generalizability, I choose to ignore the blurry penguins in the background.
+* The reason why I ignored some penguins that are too small/blurry/not distinctly visible is that, although as humans, we can know that these `objects' are penguins, if the model learns too much of this `information', it would have some problems such as over-fitting or can not detect the penguins correctly, it will treat any similar blurry things as penguin which is not good for the general case. If the application is used for counting the number of penguins in the image, then I should label all the penguins that I can see. But the main purpose is to detect and classify, thus, to balance this situation and ensure the model has high generalizability, I choose to ignore the blurry penguins in the background.
 
 % Section 4: Data processing
 \section{Data processing}
